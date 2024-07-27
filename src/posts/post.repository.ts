@@ -133,6 +133,15 @@ export class PostsRepository {
         },
       },
       {
+        $addFields: {
+          readingTime: {
+            $ceil: {
+              $divide: [{ $strLenCP: '$content' }, 5 * 200],
+            },
+          },
+        },
+      },
+      {
         $project: {
           _id: 1,
           image: 1,
@@ -143,6 +152,7 @@ export class PostsRepository {
           viewCount: 1,
           replyCommentCount: 1,
           commentCount: 1,
+          readingTime: 1 + 'minute',
           createdAt: 1,
           updatedAt: 1,
           'userDetails.firstName': 1,

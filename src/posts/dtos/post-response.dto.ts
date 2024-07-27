@@ -38,6 +38,9 @@ export class PostResponseDto {
   replyCount: number;
 
   @ApiProperty()
+  readingTime: number;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()
