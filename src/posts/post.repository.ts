@@ -5,6 +5,7 @@ import { FilterQuery, Model, Types, UpdateQuery } from 'mongoose';
 import { Post, PostDocument } from './schema/post.schema';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { PagingOptions } from 'src/common/utils/pagination.dto';
+import { PostResponseDto } from './dtos/post-response.dto';
 
 @Injectable()
 export class PostsRepository {
@@ -55,5 +56,205 @@ export class PostsRepository {
 
   async save(post: PostDocument): Promise<PostDocument> {
     return post.save();
+  }
+
+  public async findAllPosts(
+    filter: FilterQuery<PostDocument> = {},
+    sort: any = { createdAt: -1 },
+    option: PagingOptions = {
+      skip: 0,
+      limit: 10,
+      sort: 'desc',
+      getSortObject: function (): 1 | -1 {
+        throw new Error('Function not implemented.');
+      },
+    },
+  ): Promise<PostResponseDto[]> {
+    const skip = option.skip || 0;
+    const limit = option.limit || 10;
+
+    const sortObj: Record<string, 1 | -1> = {};
+    for (const key in sort) {
+      sortObj[key] = sort[key] === 'asc' ? 1 : -1;
+    }
+    return this.postModel.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'userDetails',
+        },
+      },
+      {
+        $unwind: '$userDetails',
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'post',
+          as: 'comments',
+        },
+      },
+      {
+        $addFields: {
+          commentCount: { $size: '$comments' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: 'comments._id',
+          foreignField: 'parentComment',
+          as: 'replies',
+        },
+      },
+      {
+        $addFields: {
+          replyCount: { $size: '$replies' },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          image: 1,
+          content: 1,
+          category: 1,
+          upVotes: 1,
+          downVotes: 1,
+          viewCount: 1,
+          replyCount: 1,
+          commentCount: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          'userDetails.firstName': 1,
+          'userDetails.lastName': 1,
+          'userDetails.image': 1,
+        },
+      },
+      {
+        $sort: sortObj,
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+  }
+
+  public async votePost(
+    postId: Types.ObjectId,
+    voteType: 'upvote' | 'downvote',
+  ): Promise<PostDocument> {
+    const update =
+      voteType === 'upvote'
+        ? { $inc: { upVotes: 1 } }
+        : { $inc: { downVotes: 1 } };
+    return this.postModel.findByIdAndUpdate(postId, update, { new: true });
+  }
+
+  public async findByIdWithComments(postId: Types.ObjectId): Promise<any> {
+    return this.postModel
+      .aggregate([
+        {
+          $match: { _id: postId },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user',
+            foreignField: '_id',
+            as: 'userDetails',
+          },
+        },
+        {
+          $unwind: '$userDetails',
+        },
+        {
+          $lookup: {
+            from: 'comments',
+            let: { postId: '$_id' },
+            pipeline: [
+              { $match: { $expr: { $eq: ['$post', '$$postId'] } } },
+              {
+                $lookup: {
+                  from: 'users',
+                  localField: 'user',
+                  foreignField: '_id',
+                  as: 'userDetails',
+                },
+              },
+              {
+                $unwind: '$userDetails',
+              },
+              {
+                $lookup: {
+                  from: 'comments',
+                  let: { parentCommentId: '$_id' },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: { $eq: ['$parentComment', '$$parentCommentId'] },
+                      },
+                    },
+                    {
+                      $lookup: {
+                        from: 'users',
+                        localField: 'user',
+                        foreignField: '_id',
+                        as: 'userDetails',
+                      },
+                    },
+                    {
+                      $unwind: '$userDetails',
+                    },
+                  ],
+                  as: 'replies',
+                },
+              },
+            ],
+            as: 'comments',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            image: 1,
+            content: 1,
+            category: 1,
+            upVotes: 1,
+            downVotes: 1,
+            viewCount: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            'userDetails.firstName': 1,
+            'userDetails.lastName': 1,
+            'userDetails.image': 1,
+            comments: {
+              _id: 1,
+              content: 1,
+              createdAt: 1,
+              'userDetails.firstName': 1,
+              'userDetails.lastName': 1,
+              'userDetails.image': 1,
+              replies: {
+                _id: 1,
+                content: 1,
+                createdAt: 1,
+                'userDetails.firstName': 1,
+                'userDetails.lastName': 1,
+                'userDetails.image': 1,
+              },
+            },
+          },
+        },
+      ])
+      .exec();
   }
 }

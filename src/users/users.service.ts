@@ -6,10 +6,14 @@ import { hashPassword } from '../common/utils/auth.helper';
 import { Types } from 'mongoose';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { CloudinaryService } from 'src/common/services/cloudinary.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    private usersRepository: UsersRepository,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<ApiResponse<any>> {
     try {
@@ -66,8 +70,18 @@ export class UsersService {
     return user;
   }
 
-  async UpdateUser(userId: string, updateUserData: UpdateUserDto) {
+  async UpdateUser(
+    userId: string,
+    updateUserData: UpdateUserDto,
+    file: Express.Multer.File,
+  ) {
     try {
+      if (file) {
+        updateUserData.image = await this.cloudinaryService.uploadImage(
+          file,
+          'users',
+        );
+      }
       const user = await this.usersRepository.findById(
         new Types.ObjectId(userId),
       );

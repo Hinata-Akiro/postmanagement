@@ -21,6 +21,9 @@ export class User {
   @Prop({ type: MongooseSchema.Types.String })
   phoneNumber?: string;
 
+  @Prop({ required: true, type: MongooseSchema.Types.String })
+  image?: string;
+
   @Prop({ type: MongooseSchema.Types.String })
   sex?: string;
 

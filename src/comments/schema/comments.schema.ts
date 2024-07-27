@@ -18,6 +18,15 @@ export class Comment extends Document {
     ref: 'User',
   })
   user: Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Comment' })
+  parentComment?: Types.ObjectId;
+
+  @Prop({ default: 0 })
+  likes: number;
+
+  @Prop({ default: 0 })
+  dislikes: number;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);

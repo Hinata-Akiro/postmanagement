@@ -1,4 +1,4 @@
-import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { CreateUserDto } from './create-user-dto';
 import { IsString, IsOptional, Matches, IsDateString } from 'class-validator';
 
@@ -18,4 +18,11 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @IsDateString()
   dateOfBirth?: Date;
+
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
+  readonly file: Express.Multer.File;
+
+  @IsString()
+  @IsOptional()
+  image?: string;
 }

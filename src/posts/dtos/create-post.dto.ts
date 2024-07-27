@@ -3,8 +3,6 @@ import { PostCategory } from '../enums/post-category.enum';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePostDto {
-  @IsNotEmpty()
-  @IsString()
   @ApiProperty({ type: 'string', format: 'binary', required: true })
   readonly file: Express.Multer.File;
 

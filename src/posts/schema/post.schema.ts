@@ -25,6 +25,9 @@ export class Post extends Document {
   @Prop({ default: 0, type: MongooseSchema.Types.Number })
   downVotes: number;
 
+  @Prop({ default: 0, type: MongooseSchema.Types.Number })
+  viewCount: number;
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     index: true,
