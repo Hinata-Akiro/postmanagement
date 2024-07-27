@@ -10,6 +10,7 @@ import { UpdatePostDto } from './dtos/update-post.dto';
 import { PagingOptions } from 'src/common/utils/pagination.dto';
 import { PostResponseDto } from './dtos/post-response.dto';
 import { PostCategory } from './enums/post-category.enum';
+import { VoteType } from './enums/vote-type.enum';
 
 @Injectable()
 export class PostsService {
@@ -126,7 +127,7 @@ export class PostsService {
         return {
           error: true,
           statusCode: HttpStatus.FORBIDDEN,
-          message: 'You do not have permission to edit this post.',
+          message: 'You do not have permission to delete this post.',
           data: null,
         };
       }
@@ -137,6 +138,48 @@ export class PostsService {
         statusCode: HttpStatus.OK,
         message: 'Post deleted successfully.',
         data: null,
+      };
+    } catch (error) {
+      return {
+        error: true,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message || 'An unexpected error occurred.',
+        data: null,
+      };
+    }
+  }
+
+  async getPostByUserId(
+    userId: string,
+    category?: PostCategory,
+    sortBy?: string,
+    pagingOptions?: PagingOptions,
+  ): Promise<ApiResponse<PostResponseDto[]>> {
+    try {
+      const filter: any = {};
+      if (category) {
+        filter.category = category;
+      }
+
+      const sort: any = {};
+      if (sortBy === 'upVotes') {
+        sort.upVotes = pagingOptions?.getSortObject();
+      } else if (sortBy === 'createdAt') {
+        sort.createdAt = pagingOptions?.getSortObject();
+      }
+
+      const posts = await this.postsRepository.findAllPosts(
+        filter,
+        sort,
+        pagingOptions,
+        userId,
+      );
+
+      return {
+        error: false,
+        statusCode: HttpStatus.OK,
+        message: 'Posts retrieved successfully.',
+        data: posts,
       };
     } catch (error) {
       return {
@@ -190,15 +233,26 @@ export class PostsService {
 
   async votePost(
     postId: string,
-    voteType: 'upvote' | 'downvote',
+    voteType: VoteType,
   ): Promise<ApiResponse<PostDocument>> {
     try {
+      const post = await this.postsRepository.findById(
+        new Types.ObjectId(postId),
+      );
+      if (!post) {
+        return {
+          error: true,
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Post not found.',
+          data: null,
+        };
+      }
       const updatedPost = await this.postsRepository.votePost(
         new Types.ObjectId(postId),
         voteType,
       );
       const message =
-        voteType === 'upvote'
+        voteType === VoteType.UPVOTE
           ? 'Post upvoted successfully.'
           : 'Post downvoted successfully.';
       return {

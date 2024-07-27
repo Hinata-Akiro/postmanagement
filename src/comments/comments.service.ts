@@ -4,6 +4,7 @@ import { CreateCommentDto } from './dtos/create-comment.dto';
 import { Types } from 'mongoose';
 import { ApiResponse } from '../common/utils/response';
 import { CommentDocument } from './schema/comments.schema';
+import { LIkeTypes } from './enums/like-types.enum';
 
 @Injectable()
 export class CommentsService {
@@ -77,6 +78,48 @@ export class CommentsService {
         statusCode: HttpStatus.OK,
         message: 'Replies retrieved successfully.',
         data: replies,
+      };
+    } catch (error) {
+      return {
+        error: true,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message || 'An unexpected error occurred.',
+        data: null,
+      };
+    }
+  }
+
+  async LikeOrUnlikeCommentPost(
+    commentId: string,
+    userId: string,
+    type: LIkeTypes,
+  ): Promise<ApiResponse<CommentDocument>> {
+    try {
+      const comment = await this.commentsRepository.findCommentById(
+        new Types.ObjectId(commentId),
+      );
+      if (!comment) {
+        return {
+          error: true,
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Comment not found.',
+          data: null,
+        };
+      }
+      const updatedComment = await this.commentsRepository.LikeOrUnlikeComment(
+        new Types.ObjectId(commentId),
+        new Types.ObjectId(userId),
+        type,
+      );
+      const message =
+        type === LIkeTypes.Like
+          ? 'Comment liked successfully.'
+          : 'Comment disliked successfully.';
+      return {
+        error: false,
+        statusCode: HttpStatus.OK,
+        message,
+        data: updatedComment,
       };
     } catch (error) {
       return {

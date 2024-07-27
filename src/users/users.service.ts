@@ -15,7 +15,9 @@ export class UsersService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<ApiResponse<any>> {
+  async createUser(
+    createUserDto: CreateUserDto,
+  ): Promise<ApiResponse<UserResponseDto>> {
     try {
       const existingUser = await this.usersRepository.findOne({
         email: createUserDto.email.toLowerCase(),
@@ -74,7 +76,7 @@ export class UsersService {
     userId: string,
     updateUserData: UpdateUserDto,
     file: Express.Multer.File,
-  ) {
+  ): Promise<ApiResponse<UserResponseDto>> {
     try {
       if (file) {
         updateUserData.image = await this.cloudinaryService.uploadImage(
@@ -100,11 +102,20 @@ export class UsersService {
         updateUserData,
       );
 
+      const userResponseDto: UserResponseDto = {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        active: updatedUser.active,
+        image: updatedUser.image,
+      };
+
       return {
         error: false,
         statusCode: HttpStatus.OK,
         message: 'User updated successfully.',
-        data: updatedUser,
+        data: userResponseDto,
       };
     } catch (error) {
       return {

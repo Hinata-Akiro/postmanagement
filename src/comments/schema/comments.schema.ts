@@ -27,6 +27,12 @@ export class Comment extends Document {
 
   @Prop({ default: 0 })
   dislikes: number;
+
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'User' })
+  likedBy: Types.ObjectId[];
+
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'User' })
+  dislikedBy: Types.ObjectId[];
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);

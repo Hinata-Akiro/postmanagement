@@ -6,6 +6,7 @@ import { Post, PostDocument } from './schema/post.schema';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { PagingOptions } from 'src/common/utils/pagination.dto';
 import { PostResponseDto } from './dtos/post-response.dto';
+import { VoteType } from './enums/vote-type.enum';
 
 @Injectable()
 export class PostsRepository {
@@ -66,9 +67,10 @@ export class PostsRepository {
       limit: 10,
       sort: 'desc',
       getSortObject: function (): 1 | -1 {
-        throw new Error('Function not implemented.');
+        return -1;
       },
     },
+    userId?: string,
   ): Promise<PostResponseDto[]> {
     const skip = option.skip || 0;
     const limit = option.limit || 10;
@@ -77,6 +79,11 @@ export class PostsRepository {
     for (const key in sort) {
       sortObj[key] = sort[key] === 'asc' ? 1 : -1;
     }
+
+    if (userId) {
+      filter.user = new Types.ObjectId(userId);
+    }
+
     return this.postModel.aggregate([
       {
         $match: filter,
@@ -108,14 +115,21 @@ export class PostsRepository {
       {
         $lookup: {
           from: 'comments',
-          localField: 'comments._id',
-          foreignField: 'parentComment',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$post', '$$postId'] },
+                parentComment: { $exists: true },
+              },
+            },
+          ],
           as: 'replies',
         },
       },
       {
         $addFields: {
-          replyCount: { $size: '$replies' },
+          replyCommentCount: { $size: '$replies' },
         },
       },
       {
@@ -127,7 +141,7 @@ export class PostsRepository {
           upVotes: 1,
           downVotes: 1,
           viewCount: 1,
-          replyCount: 1,
+          replyCommentCount: 1,
           commentCount: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -137,7 +151,7 @@ export class PostsRepository {
         },
       },
       {
-        $sort: sortObj,
+        $sort: Object.keys(sortObj).length ? sortObj : { createdAt: -1 },
       },
       {
         $skip: skip,
@@ -150,10 +164,10 @@ export class PostsRepository {
 
   public async votePost(
     postId: Types.ObjectId,
-    voteType: 'upvote' | 'downvote',
+    voteType: VoteType,
   ): Promise<PostDocument> {
     const update =
-      voteType === 'upvote'
+      voteType === VoteType.UPVOTE
         ? { $inc: { upVotes: 1 } }
         : { $inc: { downVotes: 1 } };
     return this.postModel.findByIdAndUpdate(postId, update, { new: true });

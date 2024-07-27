@@ -15,21 +15,9 @@ export class UserResponseDto {
   @Expose()
   email: string;
 
-  @ApiProperty({ description: 'Phone number of the user', required: false })
+  @ApiProperty({ description: 'image of the user', required: false })
   @Expose()
-  phoneNumber?: string;
-
-  @ApiProperty({ description: 'State of the user', required: false })
-  @Expose()
-  state?: string;
-
-  @ApiProperty({ description: 'Country of the user', required: false })
-  @Expose()
-  country?: string;
-
-  @ApiProperty({ description: 'Sex of the user', required: false })
-  @Expose()
-  sex?: string;
+  image?: string;
 
   @ApiProperty({ description: 'Date of birth of the user', required: false })
   @Expose()

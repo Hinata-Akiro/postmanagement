@@ -28,6 +28,7 @@ import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { PagingOptions } from 'src/common/utils/pagination.dto';
 import { PostCategory } from './enums/post-category.enum';
+import { VoteType } from './enums/vote-type.enum';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -99,22 +100,20 @@ export class PostsController {
       limit: Number(limit),
       sort: sortBy === 'asc' || sortBy === 'desc' ? sortBy : 'desc',
       getSortObject: function (): 1 | -1 {
-        throw new Error('Function not implemented.');
+        return -1;
       },
     };
     return this.postsService.getPosts(category, sortBy, pagingOptions);
   }
 
-  @Patch(':id/vote/:type')
+  @Patch(':id/vote')
   @ApiResponse({ status: 200, description: 'Post voted successfully.' })
   @ApiResponse({ status: 400, description: 'Post not found.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
+  @ApiQuery({ name: 'type', enum: VoteType, required: true })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async votePost(
-    @Param('id') postId: string,
-    @Param('type') type: 'upvote' | 'downvote',
-  ) {
+  async votePost(@Param('id') postId: string, @Query('type') type: VoteType) {
     return this.postsService.votePost(postId, type);
   }
 
@@ -126,5 +125,36 @@ export class PostsController {
   @UseGuards(AuthGuard())
   async getPostById(@Param('postId') postId: string) {
     return this.postsService.getPostById(postId);
+  }
+
+  @Get('user-posts')
+  @ApiResponse({ status: 200, description: 'Posts retrieved successfully.' })
+  @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
+  @ApiQuery({ name: 'category', enum: PostCategory, required: false })
+  @ApiQuery({ name: 'sortBy', required: false })
+  @ApiQuery({ name: 'page', required: false, schema: { default: 1 } })
+  @ApiQuery({ name: 'limit', required: false, schema: { default: 10 } })
+  async getPostByUserId(
+    @Req() req: Request,
+    @Query('category') category?: PostCategory,
+    @Query('sortBy') sortBy?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    const pagingOptions: PagingOptions = {
+      skip: (Number(page) - 1) * Number(limit),
+      limit: Number(limit),
+      sort: sortBy === 'asc' || sortBy === 'desc' ? sortBy : 'desc',
+      getSortObject: function (): 1 | -1 {
+        return -1;
+      },
+    };
+    const userId = req['user'].id;
+    return this.postsService.getPostByUserId(
+      userId,
+      category,
+      sortBy,
+      pagingOptions,
+    );
   }
 }

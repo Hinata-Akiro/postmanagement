@@ -1,24 +1,7 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user-dto';
-import { IsString, IsOptional, Matches, IsDateString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional } from 'class-validator';
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  @Matches(/^\+[1-9]\d{1,14}$/)
-  phoneNumber?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  sex?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  dateOfBirth?: Date;
-
+export class UpdateUserDto {
   @ApiProperty({ type: 'string', format: 'binary', required: true })
   readonly file: Express.Multer.File;
 
