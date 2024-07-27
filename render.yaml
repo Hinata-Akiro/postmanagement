@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: postmanagement
+    env: node
+    buildCommand: yarn install && yarn build
+    startCommand: yarn start:prod
+    plan: standard
+    envVars:
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=4096"
