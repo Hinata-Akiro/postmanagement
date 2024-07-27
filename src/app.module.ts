@@ -5,6 +5,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
+import { PostsModule } from './posts/posts.module';
+import { CommentsModule } from './comments/comments.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { CommonModule } from './common/common.module';
     }),
     UsersModule,
     CommonModule,
+    PostsModule,
+    CommentsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
