@@ -45,18 +45,44 @@ export class CommentsRepository {
     userId: Types.ObjectId,
     type: LIkeTypes,
   ): Promise<CommentDocument> {
+    const comment = await this.commentModel.findById(commentId);
     const update: any = {};
+
     if (type === LIkeTypes.Like) {
+      if (comment.likedBy.includes(userId)) {
+        return comment;
+      }
       update.$addToSet = { likedBy: userId };
       update.$pull = { dislikedBy: userId };
-      update.$inc = { likes: 1, dislikes: -1 };
+      update.$inc = {
+        likes: 1,
+        dislikes: comment.dislikedBy.includes(userId) ? -1 : 0,
+      };
     } else {
+      if (comment.dislikedBy.includes(userId)) {
+        return comment;
+      }
       update.$addToSet = { dislikedBy: userId };
       update.$pull = { likedBy: userId };
-      update.$inc = { dislikes: 1, likes: -1 };
+      update.$inc = {
+        dislikes: 1,
+        likes: comment.likedBy.includes(userId) ? -1 : 0,
+      };
     }
-    return this.commentModel.findByIdAndUpdate(commentId, update, {
-      new: true,
-    });
+
+    const updatedComment = await this.commentModel.findByIdAndUpdate(
+      commentId,
+      update,
+      {
+        new: true,
+      },
+    );
+    if (updatedComment.likes < 0 || updatedComment.dislikes < 0) {
+      await this.commentModel.findByIdAndUpdate(commentId, {
+        $max: { likes: 0, dislikes: 0 },
+      });
+    }
+
+    return updatedComment;
   }
 }

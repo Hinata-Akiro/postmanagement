@@ -1,73 +1,45 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# README
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
+This project is a NestJS-based API that provides functionalities for managing blog posts and comments. The API includes features such as creating, updating, deleting, and retrieving posts, as well as adding comments, replying to comments, voting on posts and comments, and implementing caching to improve performance. The repository design pattern was utilized to separate concerns and ensure a clean architecture.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Approach
 
-## Description
+### Project Setup
+Initialized a new NestJS project and added necessary dependencies such as Mongoose for MongoDB interactions, Cloudinary for image uploads, and NodeCache for caching.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Repository Design Pattern
+Implemented the repository design pattern to handle data persistence. This ensures a clear separation of concerns, making the codebase more maintainable and testable.
 
-## Installation
+### CRUD Operations for Posts
+Developed CRUD endpoints for posts including features to create, update, delete, and retrieve posts. Incorporated Cloudinary for handling image uploads.
 
-```bash
-$ yarn install
-```
+### Comments and Replies
+Added functionalities for users to comment on posts and reply to comments. Each comment and reply includes user information and timestamps.
 
-## Running the app
+### Voting System
+Implemented endpoints for upvoting and downvoting posts and comments, which dynamically update the counts.
 
-```bash
-# development
-$ yarn run start
+### Caching
+Integrated NodeCache to cache responses for retrieving posts and comments, reducing the load on the database and improving response times.
 
-# watch mode
-$ yarn run start:dev
+### Swagger Integration
+Used Swagger for API documentation, allowing for easy testing and understanding of the available endpoints.
 
-# production mode
-$ yarn run start:prod
-```
+### View Count Increment
+Implemented logic to increment the view count each time a post is retrieved by its ID.
 
-## Test
+## Challenges and Solutions
 
-```bash
-# unit tests
-$ yarn run test
+### Caching Complexity
+Managing cache invalidation was challenging, especially when posts or comments were updated or deleted. Solved this by strategically deleting related cache entries upon updates or deletions.
 
-# e2e tests
-$ yarn run test:e2e
+### Aggregation Pipelines
+Constructing complex MongoDB aggregation pipelines to retrieve posts along with comments and replies was intricate. This was tackled by iterative testing and leveraging MongoDB's powerful aggregation framework.
 
-# test coverage
-$ yarn run test:cov
-```
+### Swagger Documentation
+Ensuring comprehensive and accurate Swagger documentation required careful attention to detail. This was addressed by using decorators provided by NestJS's Swagger module.
 
-## Support
+## Local Swagger Link
+You can access the local Swagger documentation at: http://localhost:4000/api/docs#
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
