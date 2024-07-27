@@ -315,6 +315,8 @@ export class PostsService {
         };
       }
 
+      await this.postsRepository.incrementViewCount(new Types.ObjectId(postId));
+
       return {
         error: false,
         statusCode: HttpStatus.OK,

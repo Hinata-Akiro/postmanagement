@@ -271,4 +271,8 @@ export class PostsRepository {
       ])
       .exec();
   }
+
+  public async incrementViewCount(postId: Types.ObjectId): Promise<void> {
+    await this.postModel.updateOne({ _id: postId }, { $inc: { viewCount: 1 } });
+  }
 }
