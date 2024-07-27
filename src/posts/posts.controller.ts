@@ -22,6 +22,7 @@ import {
   ApiBody,
   ApiTags,
   ApiQuery,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreatePostDto } from './dtos/create-post.dto';
@@ -29,6 +30,7 @@ import { UpdatePostDto } from './dtos/update-post.dto';
 import { PagingOptions } from 'src/common/utils/pagination.dto';
 import { PostCategory } from './enums/post-category.enum';
 import { VoteType } from './enums/vote-type.enum';
+import { PostResponseDto } from './dtos/post-response.dto';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -36,6 +38,7 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a new blog post' })
   @ApiResponse({ status: 201, description: 'Blog post created successfully.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   @ApiBearerAuth()
@@ -53,6 +56,7 @@ export class PostsController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update a blog post' })
   @ApiResponse({ status: 200, description: 'Blog post updated successfully.' })
   @ApiResponse({ status: 400, description: 'Post not found or forbidden.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
@@ -72,6 +76,7 @@ export class PostsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a blog post' })
   @ApiResponse({ status: 200, description: 'Blog post deleted successfully.' })
   @ApiResponse({ status: 400, description: 'Post not found or forbidden.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
@@ -83,12 +88,15 @@ export class PostsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all blog posts' })
   @ApiResponse({ status: 200, description: 'Posts retrieved successfully.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   @ApiQuery({ name: 'category', enum: PostCategory, required: false })
   @ApiQuery({ name: 'sortBy', required: false })
   @ApiQuery({ name: 'page', required: false, schema: { default: 1 } })
   @ApiQuery({ name: 'limit', required: false, schema: { default: 10 } })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   async getPosts(
     @Query('category') category?: PostCategory,
     @Query('sortBy') sortBy?: string,
@@ -107,6 +115,7 @@ export class PostsController {
   }
 
   @Patch(':id/vote')
+  @ApiOperation({ summary: 'Vote on a blog post' })
   @ApiResponse({ status: 200, description: 'Post voted successfully.' })
   @ApiResponse({ status: 400, description: 'Post not found.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
@@ -118,7 +127,12 @@ export class PostsController {
   }
 
   @Get(':postId')
-  @ApiResponse({ status: 200, description: 'Post retrieved successfully.' })
+  @ApiOperation({ summary: 'Get a blog post by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Post retrieved successfully.',
+    type: PostResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Post not found.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   @ApiBearerAuth()
@@ -128,12 +142,19 @@ export class PostsController {
   }
 
   @Get('user-posts')
-  @ApiResponse({ status: 200, description: 'Posts retrieved successfully.' })
+  @ApiOperation({ summary: 'Get blog posts by user ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Posts retrieved successfully.',
+    type: PostResponseDto,
+  })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   @ApiQuery({ name: 'category', enum: PostCategory, required: false })
   @ApiQuery({ name: 'sortBy', required: false })
   @ApiQuery({ name: 'page', required: false, schema: { default: 1 } })
   @ApiQuery({ name: 'limit', required: false, schema: { default: 10 } })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   async getPostByUserId(
     @Req() req: Request,
     @Query('category') category?: PostCategory,

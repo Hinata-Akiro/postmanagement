@@ -18,6 +18,7 @@ import {
   ApiTags,
   ApiBody,
   ApiQuery,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { ApiResponse as ApiResponseType } from '../common/utils/response';
@@ -30,6 +31,7 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Post(':postId')
+  @ApiOperation({ summary: 'Add a comment to a post' })
   @ApiResponse({ status: 201, description: 'Comment added successfully.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   @ApiBearerAuth()
@@ -45,6 +47,7 @@ export class CommentsController {
   }
 
   @Get(':postId')
+  @ApiOperation({ summary: 'Get all comments for a post' })
   @ApiResponse({ status: 200, description: 'Comments retrieved successfully.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   async getCommentsByPost(
@@ -54,6 +57,7 @@ export class CommentsController {
   }
 
   @Get('replies/:commentId')
+  @ApiOperation({ summary: 'Get all replies for a comment' })
   @ApiResponse({ status: 200, description: 'Replies retrieved successfully.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   async getRepliesByComment(
@@ -62,7 +66,8 @@ export class CommentsController {
     return this.commentsService.getRepliesByComment(commentId);
   }
 
-  @Patch(':commentId/vote/:type')
+  @Patch(':commentId/like-unlike')
+  @ApiOperation({ summary: 'Like or unlike a comment' })
   @ApiResponse({ status: 200, description: 'Comment voted successfully.' })
   @ApiResponse({ status: 500, description: 'An unexpected error occurred.' })
   @ApiQuery({ name: 'type', enum: LIkeTypes, required: true })

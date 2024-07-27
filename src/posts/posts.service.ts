@@ -11,12 +11,14 @@ import { PagingOptions } from 'src/common/utils/pagination.dto';
 import { PostResponseDto } from './dtos/post-response.dto';
 import { PostCategory } from './enums/post-category.enum';
 import { VoteType } from './enums/vote-type.enum';
+import { MemcacheService } from 'src/common/cache/memcache.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly postsRepository: PostsRepository,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly memcacheService: MemcacheService,
   ) {}
 
   async createPost(
@@ -156,6 +158,18 @@ export class PostsService {
     pagingOptions?: PagingOptions,
   ): Promise<ApiResponse<PostResponseDto[]>> {
     try {
+      const cacheKey = `postsByUser_${userId}_${category}_${sortBy}_${pagingOptions?.skip}_${pagingOptions?.limit}`;
+      const cachedPosts = await this.memcacheService.get(cacheKey);
+
+      if (cachedPosts) {
+        return {
+          error: false,
+          statusCode: HttpStatus.OK,
+          message: 'Posts retrieved successfully from cache.',
+          data: cachedPosts,
+        };
+      }
+
       const filter: any = {};
       if (category) {
         filter.category = category;
@@ -174,6 +188,8 @@ export class PostsService {
         pagingOptions,
         userId,
       );
+
+      await this.memcacheService.set(cacheKey, posts);
 
       return {
         error: false,
@@ -197,6 +213,18 @@ export class PostsService {
     pagingOptions?: PagingOptions,
   ): Promise<ApiResponse<PostResponseDto[]>> {
     try {
+      const cacheKey = `allPosts_${category}_${sortBy}_${pagingOptions?.skip}_${pagingOptions?.limit}`;
+      const cachedPosts = await this.memcacheService.get(cacheKey);
+
+      if (cachedPosts) {
+        return {
+          error: false,
+          statusCode: HttpStatus.OK,
+          message: 'Posts retrieved successfully',
+          data: cachedPosts,
+        };
+      }
+
       const filter: any = {};
       if (category) {
         filter.category = category;
@@ -215,6 +243,8 @@ export class PostsService {
         pagingOptions,
       );
 
+      await this.memcacheService.set(cacheKey, posts);
+
       return {
         error: false,
         statusCode: HttpStatus.OK,
@@ -230,7 +260,6 @@ export class PostsService {
       };
     }
   }
-
   async votePost(
     postId: string,
     voteType: VoteType,
